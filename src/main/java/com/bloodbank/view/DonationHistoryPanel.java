@@ -36,6 +36,7 @@ public class DonationHistoryPanel extends JPanel {
         JLabel titleLabel = new JLabel("My Donation History");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
 
+        // Refresh Button
         JButton refreshButton = new JButton("Refresh History");
         refreshButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         refreshButton.setBackground(new Color(52, 152, 219));
@@ -45,8 +46,32 @@ public class DonationHistoryPanel extends JPanel {
         refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         refreshButton.addActionListener(e -> loadDonations());
 
+        // Add New Donation Button (Only for non-admin users)
+        JButton addNewDonationButton = null;
+        if (!currentUser.getRole().equals("admin")) {  // Assuming User class has an isAdmin() method
+            addNewDonationButton = new JButton("Add New Donation");
+            addNewDonationButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            addNewDonationButton.setBackground(new Color(52, 152, 219));
+            addNewDonationButton.setForeground(Color.WHITE);
+            addNewDonationButton.setFocusPainted(false);
+            addNewDonationButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+            addNewDonationButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            // Add action listener to handle donation addition
+            addNewDonationButton.addActionListener(e -> showAddDonationDialog(currentUser));
+        }
+
+        // Add components to header
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonPanel.setOpaque(false);
+
+        if (addNewDonationButton != null) {
+            buttonPanel.add(addNewDonationButton);
+        }
+
+        buttonPanel.add(refreshButton);
+
         headerPanel.add(titleLabel, BorderLayout.WEST);
-        headerPanel.add(refreshButton, BorderLayout.EAST);
+        headerPanel.add(buttonPanel, BorderLayout.EAST);
 
         // History Panel
         historyPanel = new JPanel();
@@ -69,7 +94,7 @@ public class DonationHistoryPanel extends JPanel {
 
         // First get the donor ID for the current user
         Donor donor = donorDAO.getDonorByUserId(currentUser.getUserId());
-        
+
         if (donor == null) {
             // Show message if donor profile is not found
             JPanel emptyPanel = createEmptyStatePanel();
@@ -102,27 +127,27 @@ public class DonationHistoryPanel extends JPanel {
     private JPanel createEmptyStatePanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-        
+
         JLabel messageLabel = new JLabel("No donations yet");
         messageLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         messageLabel.setForeground(new Color(150, 150, 150));
         messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        
+
         JLabel subMessageLabel = new JLabel("Your donation history will appear here");
         subMessageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         subMessageLabel.setForeground(new Color(150, 150, 150));
         subMessageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        
+
         JPanel textPanel = new JPanel();
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
         textPanel.setOpaque(false);
         textPanel.add(messageLabel);
         textPanel.add(Box.createVerticalStrut(10));
         textPanel.add(subMessageLabel);
-        
+
         panel.add(Box.createVerticalStrut(100), BorderLayout.NORTH);
         panel.add(textPanel, BorderLayout.CENTER);
-        
+
         return panel;
     }
 
@@ -130,8 +155,8 @@ public class DonationHistoryPanel extends JPanel {
         JPanel card = new JPanel();
         card.setLayout(new BorderLayout(15, 15));
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(230, 230, 230), 1),
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+                BorderFactory.createLineBorder(new Color(230, 230, 230), 1),
+                BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
         card.setBackground(Color.WHITE);
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
@@ -220,4 +245,92 @@ public class DonationHistoryPanel extends JPanel {
 
         return label;
     }
-} 
+
+    private void showAddDonationDialog(User currentUser) {
+        Donor donor = donorDAO.getDonorByUserId(currentUser.getUserId());
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Add Donation", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setSize(400, 200);
+        dialog.setLocationRelativeTo(this);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        // Blood group selection
+        JLabel bloodGroupLabel = new JLabel("Blood Group:");
+//        JComboBox<String> bloodGroupCombo = new JComboBox<>(new String[]{"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"});
+        JComboBox<String> bloodGroupCombo = new JComboBox<>(new String[] {donor.getBloodGroup()});
+
+        // Quantity input
+        JLabel quantityLabel = new JLabel("Quantity (units):");
+        JTextField quantityField = new JTextField(10);
+
+        // Add components to form
+        formPanel.add(bloodGroupLabel, gbc);
+        gbc.gridx = 1;
+        formPanel.add(bloodGroupCombo, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        formPanel.add(quantityLabel, gbc);
+        gbc.gridx = 1;
+        formPanel.add(quantityField, gbc);
+
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton submitButton = new JButton("Submit");
+        JButton cancelButton = new JButton("Cancel");
+
+        submitButton.addActionListener(e -> {
+            try {
+                String bloodGroup = (String) bloodGroupCombo.getSelectedItem();
+                int quantity = Integer.parseInt(quantityField.getText());
+                if (quantity <= 0) {
+                    JOptionPane.showMessageDialog(dialog,
+                            "Please enter a valid quantity",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Donation donation = new Donation();
+                donation.setDonorId(currentUser.getId());
+                donation.setBloodGroup(bloodGroup);
+                donation.setQuantity(quantity);
+                donation.setDonationDate(new java.sql.Date(System.currentTimeMillis()));
+                donation.setStatus("pending");
+
+                if (donationDAO.addDonation(donation)) {
+                    JOptionPane.showMessageDialog(dialog,
+                            "Donation request submitted successfully!\nWaiting for admin approval.",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    dialog.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(dialog,
+                            "Failed to submit donation request",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog,
+                        "Please enter a valid quantity",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(submitButton);
+        buttonPanel.add(cancelButton);
+
+        dialog.add(formPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+}

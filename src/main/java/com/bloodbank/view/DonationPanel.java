@@ -156,7 +156,7 @@ public class DonationPanel extends JPanel {
         JComboBox<String> bloodGroupCombo = new JComboBox<>(new String[]{"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"});
         
         // Quantity input
-        JLabel quantityLabel = new JLabel("Quantity (ml):");
+        JLabel quantityLabel = new JLabel("Quantity (units):");
         JTextField quantityField = new JTextField(10);
 
         // Add components to form
