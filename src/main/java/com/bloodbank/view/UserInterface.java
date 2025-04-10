@@ -2,7 +2,6 @@ package com.bloodbank.view;
 
 import com.bloodbank.model.User;
 import com.bloodbank.util.SessionManager;
-import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
 import java.awt.*;

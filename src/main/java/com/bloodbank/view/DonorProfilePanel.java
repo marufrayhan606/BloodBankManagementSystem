@@ -3,17 +3,16 @@ package com.bloodbank.view;
 import com.bloodbank.dao.DonorDAO;
 import com.bloodbank.model.Donor;
 import com.bloodbank.model.User;
-import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class DonorProfilePanel extends JPanel {
-    private DonorDAO donorDAO;
-    private User currentUser;
+    private final DonorDAO donorDAO = new DonorDAO();
+    private final User currentUser;
     private Donor donor;
+
     private JTextField nameField;
     private JTextField bloodGroupField;
     private JTextField dateOfBirthField;
@@ -24,117 +23,114 @@ public class DonorProfilePanel extends JPanel {
 
     public DonorProfilePanel(User user) {
         this.currentUser = user;
-        this.donorDAO = new DonorDAO();
         this.donor = donorDAO.getDonorByUserId(user.getUserId());
         initializeUI();
     }
 
     private void initializeUI() {
-        setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setLayout(new BorderLayout(15, 15));
+        setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        setBackground(Color.WHITE);
 
-        // Create header panel
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        JLabel titleLabel = new JLabel("My Profile");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        headerPanel.add(titleLabel, BorderLayout.WEST);
+        JLabel titleLabel = new JLabel("My Donor Profile");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(52, 73, 94));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        // Create form panel
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        JPanel formPanel = new JPanel();
+        formPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(52, 152, 219)),
+                "Profile Information",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Segoe UI", Font.BOLD, 16),
+                new Color(41, 128, 185)
+        ));
+        formPanel.setBackground(Color.WHITE);
 
-        // Name field
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        formPanel.add(new JLabel("Name:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        nameField = new JTextField(20);
-        nameField.setText(donor != null ? donor.getName() : "");
-        formPanel.add(nameField, gbc);
+        GroupLayout layout = new GroupLayout(formPanel);
+        formPanel.setLayout(layout);
+        layout.setAutoCreateGaps(true);
+        layout.setAutoCreateContainerGaps(true);
 
-        // Blood group field
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 0.0;
-        formPanel.add(new JLabel("Blood Group:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        bloodGroupField = new JTextField(20);
-        bloodGroupField.setText(donor != null ? donor.getBloodGroup() : "");
-        formPanel.add(bloodGroupField, gbc);
-
-        // Date of birth field
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.weightx = 0.0;
-        formPanel.add(new JLabel("Date of Birth:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        dateOfBirthField = new JTextField(20);
-        dateOfBirthField.setText(donor != null ? donor.getDateOfBirth() : "");
-        formPanel.add(dateOfBirthField, gbc);
-
-        // Gender field
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.weightx = 0.0;
-        formPanel.add(new JLabel("Gender:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        genderField = new JTextField(20);
-        genderField.setText(donor != null ? donor.getGender() : "");
-        formPanel.add(genderField, gbc);
-
-        // Phone field
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.weightx = 0.0;
-        formPanel.add(new JLabel("Phone:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        phoneField = new JTextField(20);
-        phoneField.setText(donor != null ? donor.getPhone() : "");
-        formPanel.add(phoneField, gbc);
-
-        // Address field
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        gbc.weightx = 0.0;
-        formPanel.add(new JLabel("Address:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        addressField = new JTextField(20);
-        addressField.setText(donor != null ? donor.getAddress() : "");
-        formPanel.add(addressField, gbc);
-
-        // Last donation field
-        gbc.gridx = 0;
-        gbc.gridy = 6;
-        gbc.weightx = 0.0;
-        formPanel.add(new JLabel("Last Donation:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        lastDonationField = new JTextField(20);
-        lastDonationField.setText(donor != null ? donor.getLastDonationDate() : "");
+        // Fields
+        nameField = createField(donor != null ? donor.getName() : "");
+        bloodGroupField = createField(donor != null ? donor.getBloodGroup() : "");
+        dateOfBirthField = createField(donor != null ? donor.getDateOfBirth() : "");
+        genderField = createField(donor != null ? donor.getGender() : "");
+        phoneField = createField(donor != null ? donor.getPhone() : "");
+        addressField = createField(donor != null ? donor.getAddress() : "");
+        lastDonationField = createField(donor != null ? donor.getLastDonationDate() : "");
         lastDonationField.setEditable(false);
-        formPanel.add(lastDonationField, gbc);
 
-        // Create button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // Labels
+        JLabel nameLabel = new JLabel("Name:");
+        JLabel bloodLabel = new JLabel("Blood Group:");
+        JLabel dobLabel = new JLabel("Date of Birth:");
+        JLabel genderLabel = new JLabel("Gender:");
+        JLabel phoneLabel = new JLabel("Phone:");
+        JLabel addressLabel = new JLabel("Address:");
+        JLabel lastDonationLabel = new JLabel("Last Donation:");
+
+        setLabelStyle(nameLabel, bloodLabel, dobLabel, genderLabel, phoneLabel, addressLabel, lastDonationLabel);
+
+        layout.setHorizontalGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                        .addComponent(nameLabel)
+                        .addComponent(bloodLabel)
+                        .addComponent(dobLabel)
+                        .addComponent(genderLabel)
+                        .addComponent(phoneLabel)
+                        .addComponent(addressLabel)
+                        .addComponent(lastDonationLabel))
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(nameField)
+                        .addComponent(bloodGroupField)
+                        .addComponent(dateOfBirthField)
+                        .addComponent(genderField)
+                        .addComponent(phoneField)
+                        .addComponent(addressField)
+                        .addComponent(lastDonationField))
+        );
+
+        layout.setVerticalGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(nameLabel).addComponent(nameField))
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(bloodLabel).addComponent(bloodGroupField))
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(dobLabel).addComponent(dateOfBirthField))
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(genderLabel).addComponent(genderField))
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(phoneLabel).addComponent(phoneField))
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(addressLabel).addComponent(addressField))
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(lastDonationLabel).addComponent(lastDonationField))
+        );
+
         JButton saveButton = new JButton("Save Changes");
-        saveButton.setBackground(new Color(39, 174, 96));
-        saveButton.setForeground(Color.WHITE);
         saveButton.setFocusPainted(false);
+        saveButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        saveButton.setBackground(new Color(46, 204, 113));
+        saveButton.setForeground(Color.WHITE);
+        saveButton.setPreferredSize(new Dimension(150, 35));
         saveButton.addActionListener(e -> saveProfile());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.WHITE);
         buttonPanel.add(saveButton);
 
-        // Add components to main panel
-        add(headerPanel, BorderLayout.NORTH);
+        add(titleLabel, BorderLayout.NORTH);
         add(formPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
+    }
+
+    private JTextField createField(String text) {
+        JTextField field = new JTextField(20);
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setText(text);
+        return field;
+    }
+
+    private void setLabelStyle(JLabel... labels) {
+        for (JLabel label : labels) {
+            label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        }
     }
 
     private void saveProfile() {
@@ -150,16 +146,9 @@ public class DonorProfilePanel extends JPanel {
         donor.setPhone(phoneField.getText().trim());
         donor.setAddress(addressField.getText().trim());
 
-        if (donorDAO.updateDonor(donor)) {
-            JOptionPane.showMessageDialog(this,
-                "Profile updated successfully",
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "Failed to update profile",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
+        boolean success = donorDAO.updateDonor(donor);
+        String message = success ? "Profile updated successfully!" : "Failed to update profile.";
+        int type = success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE;
+        JOptionPane.showMessageDialog(this, message, "Update Status", type);
     }
-} 
+}
