@@ -113,16 +113,4 @@ public class LoginDialog extends JDialog {
         return loginSuccessful;
     }
 
-    public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
-        } catch (Exception ex) {
-            System.err.println("Failed to initialize FlatLaf");
-        }
-
-        SwingUtilities.invokeLater(() -> {
-            LoginDialog dialog = new LoginDialog(null, "admin");
-            dialog.setVisible(true);
-        });
-    }
 } 

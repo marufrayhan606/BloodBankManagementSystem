@@ -252,6 +252,16 @@ public class BloodRequestPanel extends JPanel {
         int requestId = (int) tableModel.getValueAt(selectedRow, 0);
         String bloodGroup = (String) tableModel.getValueAt(selectedRow, 2);
         int requestedQuantity = (int) tableModel.getValueAt(selectedRow, 3);
+        String currentStatus = (String) tableModel.getValueAt(selectedRow, 5);
+
+        // Check if donation is already approved or rejected
+        if (!currentStatus.toLowerCase().equals("pending")) {
+            JOptionPane.showMessageDialog(this,
+                    "Only pending donations can be approved or rejected",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         // Check blood stock availability if approving
         if (status.equals("Approved")) {
