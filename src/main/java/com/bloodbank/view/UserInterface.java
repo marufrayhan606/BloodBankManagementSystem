@@ -2,9 +2,14 @@ package com.bloodbank.view;
 
 import com.bloodbank.model.User;
 import com.bloodbank.util.SessionManager;
+import com.bloodbank.util.UIUtils;
+import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
+
+import static com.bloodbank.Application.*;
+import static com.bloodbank.util.UIUtils.*;
 
 public class UserInterface extends JFrame {
     private JPanel mainPanel;
@@ -15,8 +20,9 @@ public class UserInterface extends JFrame {
     public UserInterface() {
         setTitle("Blood Bank Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1200, 800);
+        setSize(1280, 800);
         setLocationRelativeTo(null);
+        setMinimumSize(new Dimension(1024, 768));
 
         // Initialize UI
         initializeUI();
@@ -26,6 +32,7 @@ public class UserInterface extends JFrame {
         // Set up card layout for switching between panels
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
+        mainPanel.setBackground(BACKGROUND_COLOR);
 
         // Create welcome panel
         JPanel welcomePanel = createWelcomePanel();
@@ -43,34 +50,34 @@ public class UserInterface extends JFrame {
     }
 
     private JPanel createWelcomePanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        // Title
-        JLabel titleLabel = new JLabel("Welcome to Blood Bank Management System", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        panel.add(titleLabel, BorderLayout.NORTH);
-
-        // Center panel with options
-        JPanel centerPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        JPanel panel = new JPanel(new MigLayout("fill, insets 0", "[grow]", "[30%][70%]"));
+        panel.setBackground(BACKGROUND_COLOR);
+        
+        // Header banner panel
+        JPanel bannerPanel = new JPanel(new MigLayout("fill, insets 40 60 40 60", "[center]", "[center]"));
+        bannerPanel.setBackground(PRIMARY_COLOR);
+        
+        JLabel titleLabel = new JLabel("Blood Bank Management System");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 36));
+        titleLabel.setForeground(Color.WHITE);
+        
+        JLabel subtitleLabel = new JLabel("Donate Blood, Save Lives");
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        subtitleLabel.setForeground(new Color(255, 255, 255, 200));
+        
+        bannerPanel.add(titleLabel, "wrap, center");
+        bannerPanel.add(subtitleLabel, "center");
+        
+        // Options panel
+        JPanel optionsPanel = new JPanel(new MigLayout("fill, insets 40", "[center, grow]", "[]20[]20[]20[]"));
+        optionsPanel.setBackground(BACKGROUND_COLOR);
 
         // Blood Request Button
-        JButton bloodRequestButton = new JButton("Request Blood");
-        bloodRequestButton.setBackground(new Color(231, 76, 60));
-        bloodRequestButton.setForeground(Color.WHITE);
-        bloodRequestButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        bloodRequestButton.setPreferredSize(new Dimension(300, 50));
+        JButton bloodRequestButton = UIUtils.createSecondaryButton("Request Blood");
         bloodRequestButton.addActionListener(e -> cardLayout.show(mainPanel, "BLOOD_REQUEST"));
 
         // Admin Login Button
-        JButton adminLoginButton = new JButton("Admin Login");
-        adminLoginButton.setBackground(new Color(52, 152, 219));
-        adminLoginButton.setForeground(Color.WHITE);
-        adminLoginButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        adminLoginButton.setPreferredSize(new Dimension(300, 50));
+        JButton adminLoginButton = UIUtils.createPrimaryButton("Admin Login");
         adminLoginButton.addActionListener(e -> {
             LoginDialog adminLoginDialog = new LoginDialog(this, "admin");
             adminLoginDialog.setVisible(true);
@@ -81,11 +88,7 @@ public class UserInterface extends JFrame {
         });
 
         // Donor Login Button
-        JButton donorLoginButton = new JButton("Donor Login");
-        donorLoginButton.setBackground(new Color(46, 204, 113));
-        donorLoginButton.setForeground(Color.WHITE);
-        donorLoginButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        donorLoginButton.setPreferredSize(new Dimension(300, 50));
+        JButton donorLoginButton = UIUtils.createPrimaryButton("Donor Login");
         donorLoginButton.addActionListener(e -> {
             LoginDialog donorLoginDialog = new LoginDialog(this, "donor");
             donorLoginDialog.setVisible(true);
@@ -96,49 +99,51 @@ public class UserInterface extends JFrame {
         });
 
         // Donor Register Button
-        JButton donorRegisterButton = new JButton("Donor Registration");
-        donorRegisterButton.setBackground(new Color(155, 89, 182));
-        donorRegisterButton.setForeground(Color.WHITE);
-        donorRegisterButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        donorRegisterButton.setPreferredSize(new Dimension(300, 50));
+        JButton donorRegisterButton = UIUtils.createSuccessButton("Donor Registration");
         donorRegisterButton.addActionListener(e -> cardLayout.show(mainPanel, "DONOR_REGISTER"));
 
-        // Add buttons to center panel
-        gbc.gridy = 0;
-        centerPanel.add(bloodRequestButton, gbc);
-        gbc.gridy = 1;
-        centerPanel.add(adminLoginButton, gbc);
-        gbc.gridy = 2;
-        centerPanel.add(donorLoginButton, gbc);
-        gbc.gridy = 3;
-        centerPanel.add(donorRegisterButton, gbc);
+        optionsPanel.add(bloodRequestButton, "width 300!, height 50!, wrap");
+        optionsPanel.add(adminLoginButton, "width 300!, height 50!, wrap");
+        optionsPanel.add(donorLoginButton, "width 300!, height 50!, wrap");
+        optionsPanel.add(donorRegisterButton, "width 300!, height 50!");
 
-        panel.add(centerPanel, BorderLayout.CENTER);
+        panel.add(bannerPanel, "grow, wrap");
+        panel.add(optionsPanel, "grow");
 
         return panel;
     }
 
     private void showMainInterface() {
         // Create main panel with padding
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel containerPanel = new JPanel(new BorderLayout());
+        containerPanel.setBackground(BACKGROUND_COLOR);
 
         // Create header panel
-        JPanel headerPanel = new JPanel(new BorderLayout());
+        JPanel headerPanel = new JPanel(new MigLayout("fillx, insets 15 25 15 25", "[grow][]"));
+        headerPanel.setBackground(Color.WHITE);
+        headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(230, 230, 230)));
+
+        // Welcome message
         JLabel welcomeLabel = new JLabel("Welcome, " + currentUser.getUsername());
         welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        headerPanel.add(welcomeLabel, BorderLayout.WEST);
+        welcomeLabel.setForeground(TEXT_COLOR);
 
         // Create logout button
-        JButton logoutButton = new JButton("Logout");
-        logoutButton.setBackground(new Color(231, 76, 60));
-        logoutButton.setForeground(Color.WHITE);
-        logoutButton.setFocusPainted(false);
+        JButton logoutButton = UIUtils.createOutlineButton("Logout", SECONDARY_COLOR);
         logoutButton.addActionListener(e -> logout());
-        headerPanel.add(logoutButton, BorderLayout.EAST);
+
+        headerPanel.add(welcomeLabel, "left");
+        headerPanel.add(logoutButton, "right");
+
+        // Create main content panel with side navigation
+        JPanel contentPanel = new JPanel(new MigLayout("fill, insets 0", "[grow]", "[grow]"));
+        contentPanel.setBackground(BACKGROUND_COLOR);
 
         // Create tabbed pane
-        tabbedPane = new JTabbedPane();
+        tabbedPane = new JTabbedPane(JTabbedPane.LEFT);
+        tabbedPane.setBackground(BACKGROUND_COLOR);
+        tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
         // Add panels based on user role
         if (currentUser.getRole().equals("admin")) {
@@ -153,34 +158,57 @@ public class UserInterface extends JFrame {
             tabbedPane.addTab("My Donations", new DonationHistoryPanel(currentUser));
         }
 
-        // Add components to main panel
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-        mainPanel.add(tabbedPane, BorderLayout.CENTER);
+        contentPanel.add(tabbedPane, "grow");
+
+        // Add components to main container
+        containerPanel.add(headerPanel, BorderLayout.NORTH);
+        containerPanel.add(contentPanel, BorderLayout.CENTER);
 
         // Replace the current content with the main interface
         getContentPane().removeAll();
-        add(mainPanel);
+        add(containerPanel);
         revalidate();
         repaint();
     }
 
     private void logout() {
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "Are you sure you want to logout?",
-            "Logout",
-            JOptionPane.YES_NO_OPTION);
-
-        if (confirm == JOptionPane.YES_OPTION) {
+        // Create custom confirmation dialog
+        JDialog confirmDialog = new JDialog(this, "Logout", true);
+        confirmDialog.setLayout(new MigLayout("fill, insets 20", "[center]", "[]15[]"));
+        confirmDialog.setSize(350, 180);
+        confirmDialog.setLocationRelativeTo(this);
+        confirmDialog.setResizable(false);
+        
+        JLabel confirmLabel = new JLabel("Are you sure you want to logout?");
+        confirmLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        
+        JPanel buttonPanel = new JPanel(new MigLayout("insets 0", "[]10[]"));
+        buttonPanel.setOpaque(false);
+        
+        JButton noButton = UIUtils.createOutlineButton("No", PRIMARY_COLOR);
+        JButton yesButton = UIUtils.createPrimaryButton("Yes, Logout");
+        
+        noButton.addActionListener(e -> confirmDialog.dispose());
+        
+        yesButton.addActionListener(e -> {
             SessionManager.getInstance().logout();
             currentUser = null;
             getContentPane().removeAll();
             initializeUI();
             revalidate();
             repaint();
-        }
+            confirmDialog.dispose();
+        });
+        
+        buttonPanel.add(noButton);
+        buttonPanel.add(yesButton);
+        
+        confirmDialog.add(confirmLabel, "wrap");
+        confirmDialog.add(buttonPanel);
+        confirmDialog.setVisible(true);
     }
 
     public void showWelcomePanel() {
         cardLayout.show(mainPanel, "WELCOME");
     }
-} 
+}

@@ -2,11 +2,18 @@ package com.bloodbank.view;
 
 import com.bloodbank.dao.*;
 import com.bloodbank.model.*;
+import com.bloodbank.util.UIUtils;
+import net.miginfocom.swing.MigLayout;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.List;
+
+import static com.bloodbank.Application.*;
+import static com.bloodbank.util.UIUtils.*;
 
 public class DashboardPanel extends JPanel {
     private BloodStockDAO bloodStockDAO;
@@ -19,6 +26,8 @@ public class DashboardPanel extends JPanel {
     private JLabel pendingRequestsLabel;
     private DefaultTableModel recentDonationsModel;
     private DefaultTableModel recentRequestsModel;
+    private JTable recentDonationsTable;
+    private JTable recentRequestsTable;
 
     public DashboardPanel(User user) {
         this.currentUser = user;
@@ -30,77 +39,76 @@ public class DashboardPanel extends JPanel {
     }
 
     private void initializeUI() {
-        setLayout(new BorderLayout(20, 20));
-        setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
-        setBackground(new Color(245, 245, 245));
+        setLayout(new MigLayout("fill, insets 20", "[grow]", "[]15[grow]"));
+        setBackground(BACKGROUND_COLOR);
 
-        // Top Panel with Welcome Message and Refresh Button
+        // Top section with welcome message and refresh button
         JPanel topPanel = createTopPanel();
         
-        // Center Panel with Statistics and Activities
-        JPanel centerPanel = new JPanel(new BorderLayout(20, 20));
-        centerPanel.setOpaque(false);
+        // Main content panel
+        JPanel contentPanel = new JPanel(new MigLayout("fillx, wrap", "[grow]", "[]15[grow]"));
+        contentPanel.setOpaque(false);
         
-        // Statistics Panel
+        // Statistics cards section
         JPanel statsPanel = createStatsPanel();
         
-        // Activities Panel
+        // Recent activities section with tables
         JPanel activitiesPanel = createActivitiesPanel();
+        
+        contentPanel.add(statsPanel, "growx");
+        contentPanel.add(activitiesPanel, "grow");
 
-        centerPanel.add(statsPanel, BorderLayout.NORTH);
-        centerPanel.add(activitiesPanel, BorderLayout.CENTER);
-
-        add(topPanel, BorderLayout.NORTH);
-        add(centerPanel, BorderLayout.CENTER);
+        add(topPanel, "growx, wrap");
+        add(contentPanel, "grow");
     }
 
     private JPanel createTopPanel() {
-        JPanel panel = new JPanel(new BorderLayout(15, 15));
+        JPanel panel = new JPanel(new MigLayout("fillx, insets 0", "[grow][]"));
         panel.setOpaque(false);
 
         // Welcome message
-        JPanel welcomePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        welcomePanel.setOpaque(false);
+        JLabel welcomeLabel = UIUtils.createTitleLabel("Dashboard");
         
-        JLabel welcomeLabel = new JLabel("Welcome back, " + currentUser.getUsername());
-        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        
-        welcomePanel.add(welcomeLabel);
-
         // Refresh button
-        JButton refreshButton = new JButton("Refresh Dashboard");
-        refreshButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        refreshButton.setBackground(new Color(52, 152, 219));
-        refreshButton.setForeground(Color.WHITE);
-        refreshButton.setFocusPainted(false);
-        refreshButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JButton refreshButton = UIUtils.createPrimaryButton("Refresh");
         refreshButton.addActionListener(e -> loadDashboardData());
 
-        panel.add(welcomePanel, BorderLayout.WEST);
-        panel.add(refreshButton, BorderLayout.EAST);
+        panel.add(welcomeLabel, "left");
+        panel.add(refreshButton, "right");
+
         return panel;
     }
 
     private JPanel createStatsPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 4, 20, 0));
+        JPanel panel = new JPanel(new MigLayout("fillx, insets 0", "[grow,fill][grow,fill][grow,fill][grow,fill]", "[]"));
         panel.setOpaque(false);
 
-        totalBloodUnitsLabel = createStatCard("Total Blood Units", "0", new Color(46, 204, 113));
-        totalDonationsLabel = createStatCard("Total Donations", "0", new Color(52, 152, 219));
-        pendingDonationsLabel = createStatCard("Pending Donations", "0", new Color(155, 89, 182));
-        pendingRequestsLabel = createStatCard("Pending Requests", "0", new Color(231, 76, 60));
+        // Total blood units card
+        JPanel bloodUnitsCard = UIUtils.createStatCard("Total Blood Units", "0", ACCENT_COLOR);
+        totalBloodUnitsLabel = (JLabel) ((JPanel)bloodUnitsCard.getComponent(0)).getComponent(1);
+        
+        // Total donations card
+        JPanel donationsCard = UIUtils.createStatCard("Total Donations", "0", PRIMARY_COLOR);
+        totalDonationsLabel = (JLabel) ((JPanel)donationsCard.getComponent(0)).getComponent(1);
+        
+        // Pending donations card
+        JPanel pendingDonationsCard = UIUtils.createStatCard("Pending Donations", "0", new Color(155, 89, 182));
+        pendingDonationsLabel = (JLabel) ((JPanel)pendingDonationsCard.getComponent(0)).getComponent(1);
+        
+        // Pending requests card
+        JPanel pendingRequestsCard = UIUtils.createStatCard("Pending Requests", "0", SECONDARY_COLOR);
+        pendingRequestsLabel = (JLabel) ((JPanel)pendingRequestsCard.getComponent(0)).getComponent(1);
 
-        panel.add(totalBloodUnitsLabel.getParent());
-        panel.add(totalDonationsLabel.getParent());
-        panel.add(pendingDonationsLabel.getParent());
-        panel.add(pendingRequestsLabel.getParent());
+        panel.add(bloodUnitsCard, "grow");
+        panel.add(donationsCard, "grow");
+        panel.add(pendingDonationsCard, "grow");
+        panel.add(pendingRequestsCard, "grow");
 
         return panel;
     }
 
     private JPanel createActivitiesPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 2, 20, 0));
+        JPanel panel = new JPanel(new MigLayout("fill, insets 0", "[grow 50][grow 50]", "[grow]"));
         panel.setOpaque(false);
 
         // Recent Donations Panel
@@ -111,69 +119,37 @@ public class DashboardPanel extends JPanel {
         JPanel recentRequestsPanel = createActivityPanel("Recent Blood Requests", 
             new String[]{"ID", "Recipient", "Blood Group", "Status"});
 
-        panel.add(recentDonationsPanel);
-        panel.add(recentRequestsPanel);
+        panel.add(recentDonationsPanel, "grow");
+        panel.add(recentRequestsPanel, "grow");
 
         return panel;
     }
 
-    private JLabel createStatCard(String title, String value, Color color) {
-        JPanel card = new JPanel();
-        card.setLayout(new BorderLayout(10, 10));
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(230, 230, 230), 1),
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        ));
-        card.setBackground(Color.WHITE);
-
-        // Title panel
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setForeground(new Color(100, 100, 100));
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Value label
-        JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
-        valueLabel.setForeground(color);
-        valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-        card.add(titleLabel, BorderLayout.NORTH);
-        card.add(valueLabel, BorderLayout.CENTER);
-
-        // Add hover effect
-        card.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                card.setBackground(new Color(250, 250, 250));
-            }
-
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                card.setBackground(Color.WHITE);
-            }
-        });
-
-        return valueLabel;
-    }
-
     private JPanel createActivityPanel(String title, String[] columns) {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        JPanel panel = new JPanel(new MigLayout("fill, insets 0", "[grow]", "[]5[grow]"));
         panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(230, 230, 230), 1),
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        ));
+        panel.setBorder(CARD_BORDER);
 
-        // Title with icon
-        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // Title panel with icon
+        JPanel headerPanel = new JPanel(new MigLayout("fillx, insets 0", "[]push[]"));
         headerPanel.setOpaque(false);
         
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(70, 70, 70));
+        JLabel titleLabel = UIUtils.createSubtitleLabel(title);
+        
+        // Search field
+        JPanel searchPanel = new JPanel(new MigLayout("insets 0", "[]"));
+        searchPanel.setOpaque(false);
+        
+        JTextField searchField = new JTextField(10);
+        searchField.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        
+        searchPanel.add(searchField);
         
         headerPanel.add(titleLabel);
+        headerPanel.add(searchPanel, "right");
 
-        // Table
+        // Create table model
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -181,27 +157,69 @@ public class DashboardPanel extends JPanel {
             }
         };
         
+        // Create and style table
         JTable table = new JTable(model);
-        table.setRowHeight(30);
-        table.setShowGrid(false);
-        table.setIntercellSpacing(new Dimension(0, 0));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        table.getTableHeader().setBackground(new Color(245, 245, 245));
-        table.getTableHeader().setForeground(new Color(100, 100, 100));
-        table.setSelectionBackground(new Color(245, 245, 245));
+        UIUtils.styleTable(table);
         
+        // Add search functionality
+        searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                filterTable();
+            }
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                filterTable();
+            }
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                filterTable();
+            }
+            
+            private void filterTable() {
+                TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
+                table.setRowSorter(sorter);
+                String text = searchField.getText();
+                if (text.trim().length() == 0) {
+                    sorter.setRowFilter(null);
+                } else {
+                    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
+                }
+            }
+        });
+        
+        // Store model reference and table
+        if (title.contains("Donations")) {
+            recentDonationsModel = model;
+            recentDonationsTable = table;
+        } else {
+            recentRequestsModel = model;
+            recentRequestsTable = table;
+        }
+        
+        // Create custom status column renderer
+        table.getColumnModel().getColumn(columns.length - 1).setCellRenderer((tableUI, value, isSelected, hasFocus, row, column) -> {
+            String status = value.toString().toLowerCase();
+            JLabel statusLabel = UIUtils.createStatusBadge(status);
+            
+            if (isSelected) {
+                statusLabel.setOpaque(true);
+            }
+            
+            statusLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+            return statusLabel;
+        });
+        
+        // Enable sorting
+        table.setAutoCreateRowSorter(true);
+        
+        // Scroll pane
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getViewport().setBackground(Color.WHITE);
-
-        if (title.contains("Donations")) {
-            recentDonationsModel = model;
-        } else {
-            recentRequestsModel = model;
-        }
-
-        panel.add(headerPanel, BorderLayout.NORTH);
-        panel.add(scrollPane, BorderLayout.CENTER);
+        
+        panel.add(headerPanel, "growx, wrap");
+        panel.add(scrollPane, "grow");
 
         return panel;
     }
@@ -231,7 +249,7 @@ public class DashboardPanel extends JPanel {
         // Update recent donations table
         recentDonationsModel.setRowCount(0);
         donations.stream()
-            .limit(5)
+            .limit(10)  // Show more items
             .forEach(d -> recentDonationsModel.addRow(new Object[]{
                 d.getDonationId(),
                 d.getBloodGroup(),
@@ -242,7 +260,7 @@ public class DashboardPanel extends JPanel {
         // Update recent requests table
         recentRequestsModel.setRowCount(0);
         requests.stream()
-            .limit(5)
+            .limit(10)  // Show more items
             .forEach(r -> recentRequestsModel.addRow(new Object[]{
                 r.getRequestId(),
                 r.getRecipientName(),
@@ -254,4 +272,4 @@ public class DashboardPanel extends JPanel {
         revalidate();
         repaint();
     }
-} 
+}
