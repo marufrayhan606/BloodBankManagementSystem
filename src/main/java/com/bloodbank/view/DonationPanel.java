@@ -177,6 +177,24 @@ public class DonationPanel extends JPanel {
 
         submitButton.addActionListener(e -> {
             try {
+                // Retrieve the donor ID
+                int donorId = donorDAO.getDonorIdByUserId(currentUser.getId());
+
+                // Check if the donor is eligible to donate
+                java.sql.Date lastDonationDate = donorDAO.getLastDonationDate(donorId); // Pass the retrieved donor ID
+                if (lastDonationDate != null) {
+                    long timeSinceLastDonation = System.currentTimeMillis() - lastDonationDate.getTime();
+                    long twoMonthsInMillis = 60L * 24 * 60 * 60 * 1000; // 60 days in milliseconds
+
+                    if (timeSinceLastDonation < twoMonthsInMillis) {
+                        JOptionPane.showMessageDialog(dialog,
+                            "You cannot donate again before 2 months have passed since your last donation.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+
                 String bloodGroup = (String) bloodGroupCombo.getSelectedItem();
                 int quantity = Integer.parseInt(quantityField.getText());
                 if (quantity <= 0) {
@@ -311,4 +329,4 @@ public class DonationPanel extends JPanel {
             }
         }
     }
-} 
+}

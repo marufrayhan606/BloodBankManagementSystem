@@ -109,6 +109,19 @@ public class DonorPanel extends JPanel {
 
         int donorId = (int) tableModel.getValueAt(selectedRow, 0);
         String bloodGroup = (String) tableModel.getValueAt(selectedRow, 2);
+        String lastDonationDateStr = (String) tableModel.getValueAt(selectedRow, 7);
+
+        if (lastDonationDateStr != null && !lastDonationDateStr.isEmpty()) {
+            LocalDate lastDonationDate = LocalDate.parse(lastDonationDateStr);
+            LocalDate currentDate = LocalDate.now();
+            if (java.time.temporal.ChronoUnit.MONTHS.between(lastDonationDate, currentDate) < 2) {
+                JOptionPane.showMessageDialog(this,
+                    "Cannot add donation. Two months have not passed since the last donation.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
 
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Add Donation", true);
         dialog.setLayout(new BorderLayout(10, 10));
@@ -224,4 +237,4 @@ public class DonorPanel extends JPanel {
             "Coming Soon",
             JOptionPane.INFORMATION_MESSAGE);
     }
-} 
+}

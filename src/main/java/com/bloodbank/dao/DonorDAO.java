@@ -120,4 +120,37 @@ public class DonorDAO {
             return false;
         }
     }
-} 
+
+    public java.sql.Date getLastDonationDate(int donorId) {
+        String sql = "SELECT last_donation_date FROM donors WHERE donor_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, donorId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getDate("last_donation_date");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public int getDonorIdByUserId(int userId) {
+        int donorId = -1;
+        String query = "SELECT donor_id FROM donors WHERE user_id = ?";
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, userId);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                donorId = resultSet.getInt("donor_id");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return donorId;
+    }
+}

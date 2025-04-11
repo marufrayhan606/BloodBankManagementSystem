@@ -56,6 +56,20 @@ public class DonationHistoryPanel extends JPanel {
             addNewDonationButton.setFocusPainted(false);
             addNewDonationButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
             addNewDonationButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+            // Check if 2 months have passed since the last donation
+            Donor donor = donorDAO.getDonorByUserId(currentUser.getUserId());
+            if (donor != null && donor.getLastDonationDate() != null) {
+                java.sql.Date lastDonationDate = java.sql.Date.valueOf(donor.getLastDonationDate());
+                long timeSinceLastDonation = System.currentTimeMillis() - lastDonationDate.getTime();
+                long twoMonthsInMillis = 60L * 24 * 60 * 60 * 1000; // 60 days in milliseconds
+
+                if (timeSinceLastDonation < twoMonthsInMillis) {
+                    addNewDonationButton.setEnabled(false);
+                    addNewDonationButton.setToolTipText("You cannot donate again before 2 months have passed since your last donation.");
+                }
+            }
+
             // Add action listener to handle donation addition
             addNewDonationButton.addActionListener(e -> showAddDonationDialog(currentUser));
         }
