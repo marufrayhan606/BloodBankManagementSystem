@@ -12,18 +12,29 @@ import java.util.List;
 
 public class DonationDAO {
     public boolean addDonation(Donation donation) {
-        String sql = "INSERT INTO donations (donor_id, blood_group, quantity, donation_date, status) " +
-                    "VALUES (?, ?, ?, ?, ?)";
+        String checkDonorSql = "SELECT COUNT(*) FROM donors WHERE donor_id = ?";
+        String insertDonationSql = "INSERT INTO donations (donor_id, blood_group, quantity, donation_date, status) " +
+                                   "VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setInt(1, donation.getDonorId());
-            pstmt.setString(2, donation.getBloodGroup());
-            pstmt.setInt(3, donation.getQuantity());
-            pstmt.setDate(4, donation.getDonationDate());
-            pstmt.setString(5, donation.getStatus());
-            
-            return pstmt.executeUpdate() > 0;
+             PreparedStatement checkDonorStmt = conn.prepareStatement(checkDonorSql);
+             PreparedStatement insertDonationStmt = conn.prepareStatement(insertDonationSql)) {
+
+            // Validate donor_id exists
+            checkDonorStmt.setInt(1, donation.getDonorId());
+            ResultSet rs = checkDonorStmt.executeQuery();
+            if (rs.next() && rs.getInt(1) == 0) {
+                System.err.println("Donor ID " + donation.getDonorId() + " does not exist.");
+                return false;
+            }
+
+            // Insert donation
+            insertDonationStmt.setInt(1, donation.getDonorId());
+            insertDonationStmt.setString(2, donation.getBloodGroup());
+            insertDonationStmt.setInt(3, donation.getQuantity());
+            insertDonationStmt.setDate(4, donation.getDonationDate());
+            insertDonationStmt.setString(5, donation.getStatus());
+
+            return insertDonationStmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -120,4 +131,4 @@ public class DonationDAO {
         }
         return null;
     }
-} 
+}

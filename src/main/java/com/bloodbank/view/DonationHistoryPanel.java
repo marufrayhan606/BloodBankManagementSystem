@@ -262,7 +262,6 @@ public class DonationHistoryPanel extends JPanel {
 
         // Blood group selection
         JLabel bloodGroupLabel = new JLabel("Blood Group:");
-//        JComboBox<String> bloodGroupCombo = new JComboBox<>(new String[]{"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"});
         JComboBox<String> bloodGroupCombo = new JComboBox<>(new String[] {donor.getBloodGroup()});
 
         // Quantity input
@@ -297,8 +296,16 @@ public class DonationHistoryPanel extends JPanel {
                     return;
                 }
 
+                if (donor == null) {
+                    JOptionPane.showMessageDialog(dialog,
+                            "Donor profile not found. Please complete your donor profile first.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
                 Donation donation = new Donation();
-                donation.setDonorId(currentUser.getId());
+                donation.setDonorId(donor.getDonorId()); // Use donor's ID
                 donation.setBloodGroup(bloodGroup);
                 donation.setQuantity(quantity);
                 donation.setDonationDate(new java.sql.Date(System.currentTimeMillis()));
