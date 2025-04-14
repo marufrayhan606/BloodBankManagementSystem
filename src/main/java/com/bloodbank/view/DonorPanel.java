@@ -213,11 +213,18 @@ public class DonorPanel extends JPanel {
             JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            // TODO: Implement delete donor functionality
-            JOptionPane.showMessageDialog(this,
-                "Delete donor functionality will be implemented soon",
-                "Coming Soon",
-                JOptionPane.INFORMATION_MESSAGE);
+            if (donorDAO.deleteDonor(donorId)) {
+                JOptionPane.showMessageDialog(this,
+                    "Donor deleted successfully",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+                loadDonors();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Failed to delete donor",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -231,10 +238,116 @@ public class DonorPanel extends JPanel {
             return;
         }
 
-        // TODO: Implement edit donor dialog
-        JOptionPane.showMessageDialog(this,
-            "Edit donor functionality will be implemented soon",
-            "Coming Soon",
-            JOptionPane.INFORMATION_MESSAGE);
+        int donorId = (int) tableModel.getValueAt(selectedRow, 0);
+        Donor donor = donorDAO.getDonorByDonorId(donorId);
+
+        if (donor == null) {
+            JOptionPane.showMessageDialog(this,
+                "Failed to retrieve donor details",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Edit Donor", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setSize(400, 300);
+        dialog.setLocationRelativeTo(this);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        // Name input
+        JLabel nameLabel = new JLabel("Name:");
+        JTextField nameField = new JTextField(donor.getName(), 15);
+        formPanel.add(nameLabel, gbc);
+        gbc.gridx = 1;
+        formPanel.add(nameField, gbc);
+
+        // Blood Group input
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JLabel bloodGroupLabel = new JLabel("Blood Group:");
+        JTextField bloodGroupField = new JTextField(donor.getBloodGroup(), 15);
+        formPanel.add(bloodGroupLabel, gbc);
+        gbc.gridx = 1;
+        formPanel.add(bloodGroupField, gbc);
+
+        // Date of Birth input
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JLabel dobLabel = new JLabel("Date of Birth:");
+        JTextField dobField = new JTextField(donor.getDateOfBirth(), 15);
+        formPanel.add(dobLabel, gbc);
+        gbc.gridx = 1;
+        formPanel.add(dobField, gbc);
+
+        // Gender input
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JLabel genderLabel = new JLabel("Gender:");
+        JTextField genderField = new JTextField(donor.getGender(), 15);
+        formPanel.add(genderLabel, gbc);
+        gbc.gridx = 1;
+        formPanel.add(genderField, gbc);
+
+        // Phone input
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JLabel phoneLabel = new JLabel("Phone:");
+        JTextField phoneField = new JTextField(donor.getPhone(), 15);
+        formPanel.add(phoneLabel, gbc);
+        gbc.gridx = 1;
+        formPanel.add(phoneField, gbc);
+
+        // Address input
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JLabel addressLabel = new JLabel("Address:");
+        JTextField addressField = new JTextField(donor.getAddress(), 15);
+        formPanel.add(addressLabel, gbc);
+        gbc.gridx = 1;
+        formPanel.add(addressField, gbc);
+
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton saveButton = new JButton("Save");
+        JButton cancelButton = new JButton("Cancel");
+
+        saveButton.addActionListener(e -> {
+            donor.setName(nameField.getText());
+            donor.setBloodGroup(bloodGroupField.getText());
+            donor.setDateOfBirth(dobField.getText());
+            donor.setGender(genderField.getText());
+            donor.setPhone(phoneField.getText());
+            donor.setAddress(addressField.getText());
+
+            if (donorDAO.updateDonor(donor)) {
+                JOptionPane.showMessageDialog(dialog,
+                    "Donor updated successfully",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+                loadDonors();
+            } else {
+                JOptionPane.showMessageDialog(dialog,
+                    "Failed to update donor",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+
+        dialog.add(formPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
     }
 }

@@ -153,4 +153,45 @@ public class DonorDAO {
         }
         return donorId;
     }
+
+    public boolean deleteDonor(int donorId) {
+        String sql = "DELETE FROM donors WHERE donor_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, donorId);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Donor getDonorByDonorId(int donorId) {
+        
+        String sql = "SELECT * FROM donors WHERE donor_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, donorId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return new Donor(
+                    rs.getInt("donor_id"),
+                    rs.getInt("user_id"),
+                    rs.getString("name"),
+                    rs.getString("blood_group"),
+                    rs.getString("date_of_birth"),
+                    rs.getString("gender"),
+                    rs.getString("phone"),
+                    rs.getString("address"),
+                    rs.getString("last_donation_date")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
