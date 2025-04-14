@@ -147,13 +147,9 @@ public class BloodRequestPanel extends JPanel {
                     "Blood request submitted successfully. Our team will review your request.",
                     "Success",
                     JOptionPane.INFORMATION_MESSAGE);
-                // Clear form
-                recipientNameField.setText("");
-                bloodGroupField.setSelectedIndex(0);
-                quantityField.setValue(1);
-                hospitalNameField.setText("");
-                hospitalAddressField.setText("");
-                patientConditionArea.setText("");
+                // Navigate back to the home page
+                SwingUtilities.getWindowAncestor(this).dispose(); // Close current panel
+                new UserInterface().setVisible(true); // Open home page
             } else {
                 JOptionPane.showMessageDialog(this,
                     "Failed to submit blood request",
